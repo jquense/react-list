@@ -125,6 +125,13 @@ A boolean to determine whether the `translate3d` CSS property should be used for
 positioning instead of the default `translate`. This can help performance on
 mobile devices, but is supported by fewer browsers.
 
+##### scrollParent
+
+A DOM node or component instance that represents the scroll parent of the list.
+By default `react-list` will locate the correct `scrollParent` automatically so
+you only need to specify one if you are doing something tricky like adjusting
+the `overflow` style dynamically.
+
 ## Methods
 
 ##### scrollTo(index)

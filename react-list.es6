@@ -32,7 +32,16 @@ export default class extends Component {
     pageSize: PropTypes.number,
     threshold: PropTypes.number,
     type: PropTypes.oneOf(['simple', 'variable', 'uniform']),
-    useTranslate3d: PropTypes.bool
+    useTranslate3d: PropTypes.bool,
+    scrollParent: (props, propName, componentName) => {
+      if (typeof props[propName] !== 'object' ||
+        typeof props[propName].render !== 'function' && props[propName].nodeType !== 1) {
+        return new Error(
+          `Invalid prop '${propname}' of value '${props[propName]}' ` +
+          `supplied to '${componentName}', expected a DOM element or component instance.`
+        );
+      }
+    }
   };
 
   static defaultProps = {
@@ -63,14 +72,17 @@ export default class extends Component {
     const {length, pageSize} = next;
     from = this.constrainFrom(from, length, itemsPerRow);
     size = this.constrainSize(size, length, pageSize, from);
+
+    if (next.scrollParent || this.props.scrollParent) {
+      this.updateScrollParent(next);
+    }
     this.setState({from, size});
   }
 
   componentDidMount() {
-    this.scrollParent = this.getScrollParent();
     this.updateFrame = this.updateFrame.bind(this);
     window.addEventListener('resize', this.updateFrame);
-    this.scrollParent.addEventListener('scroll', this.updateFrame);
+    this.updateScrollParent();
     this.updateFrame();
     const {initialIndex} = this.props;
     if (initialIndex == null) return;
@@ -99,9 +111,12 @@ export default class extends Component {
     return offset;
   }
 
-  getScrollParent() {
+  getScrollParent(props = this.props) {
+    if (props.scrollParent)
+      return findDOMNode(props.scrollParent)
+
     let el = findDOMNode(this);
-    const overflowKey = OVERFLOW_KEYS[this.props.axis];
+    const overflowKey = OVERFLOW_KEYS[props.axis];
     while (el = el.parentElement) {
       switch (window.getComputedStyle(el)[overflowKey]) {
       case 'auto': case 'scroll': case 'overlay': return el;
@@ -174,6 +189,15 @@ export default class extends Component {
     ) ++itemsPerRow;
 
     return {itemSize, itemsPerRow};
+  }
+
+  updateScrollParent(props) {
+    const prev = this.scrollParent;
+    this.scrollParent = this.getScrollParent(props);
+    if (prev !== this.scrollParent) {
+      if (prev) prev.removeEventListener('scroll', this.updateFrame);
+      this.scrollParent.addEventListener('scroll', this.updateFrame);
+    }
   }
 
   updateFrame() {

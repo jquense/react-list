@@ -15,7 +15,7 @@
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x3, _x4, _x5) { var _again = true; _function: while (_again) { var object = _x3, property = _x4, receiver = _x5; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x3 = parent; _x4 = property; _x5 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -67,7 +67,12 @@
         pageSize: _react.PropTypes.number,
         threshold: _react.PropTypes.number,
         type: _react.PropTypes.oneOf(['simple', 'variable', 'uniform']),
-        useTranslate3d: _react.PropTypes.bool
+        useTranslate3d: _react.PropTypes.bool,
+        scrollParent: function scrollParent(props, propName, componentName) {
+          if (typeof props[propName] !== 'object' || typeof props[propName].render !== 'function' && props[propName].nodeType !== 1) {
+            return new Error('Invalid prop \'' + propname + '\' of value \'' + props[propName] + '\' ' + ('supplied to \'' + componentName + '\', expected a DOM element or component instance.'));
+          }
+        }
       },
       enumerable: true
     }, {
@@ -127,15 +132,18 @@
 
         from = this.constrainFrom(from, length, itemsPerRow);
         size = this.constrainSize(size, length, pageSize, from);
+
+        if (next.scrollParent || this.props.scrollParent) {
+          this.updateScrollParent(next);
+        }
         this.setState({ from: from, size: size });
       }
     }, {
       key: 'componentDidMount',
       value: function componentDidMount() {
-        this.scrollParent = this.getScrollParent();
         this.updateFrame = this.updateFrame.bind(this);
         window.addEventListener('resize', this.updateFrame);
-        this.scrollParent.addEventListener('scroll', this.updateFrame);
+        this.updateScrollParent();
         this.updateFrame();
         var initialIndex = this.props.initialIndex;
 
@@ -172,8 +180,12 @@
     }, {
       key: 'getScrollParent',
       value: function getScrollParent() {
+        var props = arguments.length <= 0 || arguments[0] === undefined ? this.props : arguments[0];
+
+        if (props.scrollParent) return findDOMNode(props.scrollParent);
+
         var el = findDOMNode(this);
-        var overflowKey = OVERFLOW_KEYS[this.props.axis];
+        var overflowKey = OVERFLOW_KEYS[props.axis];
         while (el = el.parentElement) {
           switch (window.getComputedStyle(el)[overflowKey]) {
             case 'auto':case 'scroll':case 'overlay':
@@ -251,6 +263,16 @@
         for (var item = itemEls[itemsPerRow]; item && item[startKey] === firstStart; item = itemEls[itemsPerRow]) {
           ++itemsPerRow;
         }return { itemSize: itemSize, itemsPerRow: itemsPerRow };
+      }
+    }, {
+      key: 'updateScrollParent',
+      value: function updateScrollParent(props) {
+        var prev = this.scrollParent;
+        this.scrollParent = this.getScrollParent(props);
+        if (prev !== this.scrollParent) {
+          if (prev) prev.removeEventListener('scroll', this.updateFrame);
+          this.scrollParent.addEventListener('scroll', this.updateFrame);
+        }
       }
     }, {
       key: 'updateFrame',
