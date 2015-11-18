@@ -69,7 +69,8 @@
         type: _react.PropTypes.oneOf(['simple', 'variable', 'uniform']),
         useTranslate3d: _react.PropTypes.bool,
         scrollParent: function scrollParent(props, propName, componentName) {
-          if (typeof props[propName] !== 'object' || typeof props[propName].render !== 'function' && props[propName].nodeType !== 1) {
+          if (!props[propName]) return null;
+          if (typeof props[propName] !== 'object' || typeof props[propName] !== 'function' || typeof props[propName].render !== 'function' && props[propName].nodeType !== 1) {
             return new Error('Invalid prop \'' + propName + '\' of value \'' + props[propName] + '\' ' + ('supplied to \'' + componentName + '\', expected a DOM element or component instance.'));
           }
         }
@@ -182,7 +183,9 @@
       value: function getScrollParent() {
         var props = arguments.length <= 0 || arguments[0] === undefined ? this.props : arguments[0];
 
-        if (props.scrollParent) return findDOMNode(props.scrollParent);
+        if (props.scrollParent) {
+          return findDOMNode(typeof props.scrollParent === 'function' ? props.scrollParent() : props.scrollParent);
+        }
 
         var el = findDOMNode(this);
         var overflowKey = OVERFLOW_KEYS[props.axis];

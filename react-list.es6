@@ -34,7 +34,9 @@ export default class extends Component {
     type: PropTypes.oneOf(['simple', 'variable', 'uniform']),
     useTranslate3d: PropTypes.bool,
     scrollParent: (props, propName, componentName) => {
+      if (!props[propName]) return null;
       if (typeof props[propName] !== 'object' ||
+        typeof props[propName] !== 'function' ||
         typeof props[propName].render !== 'function' && props[propName].nodeType !== 1) {
         return new Error(
           `Invalid prop '${propName}' of value '${props[propName]}' ` +
@@ -112,8 +114,12 @@ export default class extends Component {
   }
 
   getScrollParent(props = this.props) {
-    if (props.scrollParent)
-      return findDOMNode(props.scrollParent)
+    if (props.scrollParent) {
+      return findDOMNode(typeof props.scrollParent === 'function'
+        ? props.scrollParent()
+        : props.scrollParent
+      );
+    }
 
     let el = findDOMNode(this);
     const overflowKey = OVERFLOW_KEYS[props.axis];
