@@ -70,7 +70,7 @@
         useTranslate3d: _react.PropTypes.bool,
         scrollParent: function scrollParent(props, propName, componentName) {
           if (typeof props[propName] !== 'object' || typeof props[propName].render !== 'function' && props[propName].nodeType !== 1) {
-            return new Error('Invalid prop \'' + propname + '\' of value \'' + props[propName] + '\' ' + ('supplied to \'' + componentName + '\', expected a DOM element or component instance.'));
+            return new Error('Invalid prop \'' + propName + '\' of value \'' + props[propName] + '\' ' + ('supplied to \'' + componentName + '\', expected a DOM element or component instance.'));
           }
         }
       },
