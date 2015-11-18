@@ -68,12 +68,12 @@
         threshold: _react.PropTypes.number,
         type: _react.PropTypes.oneOf(['simple', 'variable', 'uniform']),
         useTranslate3d: _react.PropTypes.bool,
-        scrollParent: function scrollParent(props, propName, componentName) {
+        scrollParent: _react.PropTypes.oneOfType([_react.PropTypes.func, function (props, propName, componentName) {
           if (!props[propName]) return null;
-          if (typeof props[propName] !== 'object' || typeof props[propName] !== 'function' || typeof props[propName].render !== 'function' && props[propName].nodeType !== 1) {
+          if (typeof props[propName] !== 'object' || typeof props[propName].render !== 'function' && props[propName].nodeType !== 1) {
             return new Error('Invalid prop \'' + propName + '\' of value \'' + props[propName] + '\' ' + ('supplied to \'' + componentName + '\', expected a DOM element or component instance.'));
           }
-        }
+        }])
       },
       enumerable: true
     }, {

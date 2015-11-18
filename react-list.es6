@@ -33,17 +33,19 @@ export default class extends Component {
     threshold: PropTypes.number,
     type: PropTypes.oneOf(['simple', 'variable', 'uniform']),
     useTranslate3d: PropTypes.bool,
-    scrollParent: (props, propName, componentName) => {
-      if (!props[propName]) return null;
-      if (typeof props[propName] !== 'object' ||
-        typeof props[propName] !== 'function' ||
-        typeof props[propName].render !== 'function' && props[propName].nodeType !== 1) {
-        return new Error(
-          `Invalid prop '${propName}' of value '${props[propName]}' ` +
-          `supplied to '${componentName}', expected a DOM element or component instance.`
-        );
+    scrollParent: PropTypes.oneOfType([
+      PropTypes.func,
+      (props, propName, componentName) => {
+        if (!props[propName]) return null;
+        if (typeof props[propName] !== 'object' ||
+          typeof props[propName].render !== 'function' && props[propName].nodeType !== 1) {
+          return new Error(
+            `Invalid prop '${propName}' of value '${props[propName]}' ` +
+            `supplied to '${componentName}', expected a DOM element or component instance.`
+          );
+        }
       }
-    }
+    ])
   };
 
   static defaultProps = {
